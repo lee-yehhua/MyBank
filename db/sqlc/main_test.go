@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"github.com/lee-yehhua/simplebank/util"
+	"github.com/lee-yehhua/mybank/util"
 	"log"
 	"os"
 	"testing"

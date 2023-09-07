@@ -1,2 +1,2 @@
-# simplebank
+# mybank
  

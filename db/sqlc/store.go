@@ -6,21 +6,26 @@ import (
 	"fmt"
 )
 
-// Store 提供所有函数来执行db queries和transactions
-type Store struct {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+// SQLStore 提供所有函数来执行db queries和transactions
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		New(db),
 		db,
 	}
 }
 
 // 输入context和回调函数，用创建的Queries调用回调函数，最后根据函数返回的error commit或者rollback事务
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil) //&sql.TxOptions设置隔离级别,read-committed
 	if err != nil {
 		return err
@@ -54,7 +59,7 @@ type TransferTxResult struct {
 }
 
 // TransferTx 创建转账记录、 添加账户条目、更新账户余额，在一个数据库事务中
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
